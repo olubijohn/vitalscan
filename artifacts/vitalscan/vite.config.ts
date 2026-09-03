@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
@@ -15,6 +16,25 @@ export default defineConfig({
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),
+    {
+      name: 'vercel-multi-output-mirror',
+      closeBundle() {
+        try {
+          const distDir = path.resolve(import.meta.dirname, 'dist');
+          const rootDist = path.resolve(import.meta.dirname, '..', '..', 'dist');
+          const rootPublic = path.resolve(import.meta.dirname, '..', '..', 'public');
+          const localPublicDist = path.resolve(import.meta.dirname, 'dist', 'public');
+          if (fs.existsSync(distDir)) {
+            if (!fs.existsSync(rootDist)) fs.mkdirSync(rootDist, { recursive: true });
+            fs.cpSync(distDir, rootDist, { recursive: true });
+            if (!fs.existsSync(rootPublic)) fs.mkdirSync(rootPublic, { recursive: true });
+            fs.cpSync(distDir, rootPublic, { recursive: true });
+            if (!fs.existsSync(localPublicDist)) fs.mkdirSync(localPublicDist, { recursive: true });
+            fs.cpSync(distDir, localPublicDist, { recursive: true });
+          }
+        } catch {}
+      },
+    },
     ...(process.env.NODE_ENV !== 'production' &&
     process.env.REPL_ID !== undefined
       ? [
