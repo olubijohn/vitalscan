@@ -1,0 +1,1 @@
+- [PreCURE persistence boundary](vitalscan-persistence.md) — the current MVP uses a seeded in-memory store; PostgreSQL persistence remains a deliberate follow-up.

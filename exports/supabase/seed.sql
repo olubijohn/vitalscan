@@ -1,0 +1,25 @@
+-- Development-only seed. Do not use this file for production accounts.
+-- Create an Auth user first in Supabase Authentication, then replace the UUID below.
+
+-- Example:
+-- insert into public.workspaces (id, name, type, address, credit_balance, kiosk_enabled)
+-- values ('00000000-0000-0000-0000-000000000001', 'Demo Wellness Workspace', 'Gym', '14 King Street', 100, true)
+-- on conflict (id) do nothing;
+--
+-- insert into public.devices (workspace_id, device_code, label, type, location)
+-- values ('00000000-0000-0000-0000-000000000001', 'VS-DEMO001', 'Reception kiosk', 'camera', 'Front desk')
+-- on conflict (device_code) do nothing;
+--
+-- The profile trigger creates profiles automatically after Auth signup.
+-- Promote a trusted development account from a server-side SQL session:
+--
+-- update public.profiles
+-- set role = 'tenant_admin',
+--     workspace_id = '00000000-0000-0000-0000-000000000001'
+-- where id = 'REPLACE_WITH_AUTH_USER_UUID';
+--
+-- insert into public.workspace_members (workspace_id, user_id, role)
+-- values ('00000000-0000-0000-0000-000000000001', 'REPLACE_WITH_AUTH_USER_UUID', 'tenant_admin')
+-- on conflict do nothing;
+--
+-- Configure the kiosk code through the app’s Workspace settings screen.

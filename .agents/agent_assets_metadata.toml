@@ -1,0 +1,44 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "0mXHDJK_Qa5KvWnHxHU1o"
+uri = "file://exports/VitalScanSupabase.jsx"
+type = "unspecified"
+title = "VitalScan Supabase React JSX"
+description = "Portable single-file React frontend with Supabase authentication, subscriber history, consent controls, workspace directory, devices, kiosk settings, scans, self-reports, and privacy-safe CSV reporting."
+logical_id = "23546d12-9b53-44ac-bd7f-1f861cc60f99"
+content_hash = "sha256:270b43712004c57c9c43a7c69670b7668de0bf6674c5c08864ac65afa476dab7"
+size = 35917
+mtime_ms = 1788366844497
+storage_uri = "gcs://replit-rams-assets-worf/rams/assets/repl:c9336a86-de05-40ac-b2eb-b345c05cffb4/23546d12-9b53-44ac-bd7f-1f861cc60f99/816d7615-08cb-4b87-9a65-3cf2c2b3930e"
+storage_version_token = "1788366889778700"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "DF02ANRwkrV8J1iUSXikg"
+uri = "file://exports/VitalScan-Supabase-Migration-Guide.md"
+type = "text"
+title = "VitalScan Supabase Migration Guide"
+description = "Step-by-step setup guide with PostgreSQL schema, authentication trigger, RLS policies, kiosk RPCs, FaceHeart integration boundary, deployment steps, and production checklist."
+logical_id = "245625c3-6130-446b-a9b4-e3afc14875a3"
+content_hash = "sha256:7fe471f5d65e46acf4c548095e28361919e3637f9aba9dfdb10ba6e70534d071"
+size = 19714
+mtime_ms = 1788366869724
+storage_uri = "gcs://replit-rams-assets-worf/rams/assets/repl:c9336a86-de05-40ac-b2eb-b345c05cffb4/245625c3-6130-446b-a9b4-e3afc14875a3/e31354d8-6a84-4190-a611-1082ff2204e1"
+storage_version_token = "1788366890338741"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "XVuDyE9-tGXYKMdpZGrBh"
+uri = "file://exports/vitalscan-supabase-bundle.zip"
+type = "unspecified"
+title = "VitalScan Supabase Complete Project Bundle"
+description = "Updated runnable project with React/Vite setup, full JSX application, protected kiosk entry and exit flow, Supabase database migration, RLS policies, secure RPCs, development seed template, environment template, README, and comprehensive migration guide."
+logical_id = "f3433d25-8245-448b-bba2-b635896cc9fa"
+content_hash = "sha256:31c2c56d56e53f119d85fb2ac2664ff607217b72a636273c497ee1e946b98be2"
+size = 24192
+mtime_ms = 1788387001894
+storage_uri = "gcs://replit-rams-assets-worf/rams/assets/repl:c9336a86-de05-40ac-b2eb-b345c05cffb4/f3433d25-8245-448b-bba2-b635896cc9fa/adf05879-435e-49f9-91d8-4e1f16a044b7"
+storage_version_token = "1788387006101032"
+content_type = "application/octet-stream"

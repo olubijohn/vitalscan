@@ -1,0 +1,1451 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: PreCURE multi-tenant wellness scanning platform API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication and session operations
+  - name: admin
+    description: Super Admin console operations
+  - name: tenant
+    description: Tenant console operations
+  - name: subscriber
+    description: Subscriber portal operations
+  - name: kiosk
+    description: Kiosk scanning operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Log in with a demo account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Authenticated session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "401":
+          description: Invalid credentials
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: End the current session
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+  /auth/me:
+    get:
+      operationId: getSession
+      tags: [auth]
+      summary: Get the current session
+      responses:
+        "200":
+          description: Current session or null
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+  /admin/overview:
+    get:
+      operationId: getAdminOverview
+      tags: [admin]
+      summary: Get platform overview metrics
+      responses:
+        "200":
+          description: Platform overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOverview"
+  /admin/tenants:
+    get:
+      operationId: listTenants
+      tags: [admin]
+      summary: List all tenants
+      responses:
+        "200":
+          description: Tenant list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tenant"
+    post:
+      operationId: createTenant
+      tags: [admin]
+      summary: Create a tenant and invite its admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantInput"
+      responses:
+        "201":
+          description: Tenant created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+  /admin/tenants/{id}:
+    get:
+      operationId: getTenant
+      tags: [admin]
+      summary: Get tenant detail
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Tenant detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantDetail"
+    patch:
+      operationId: updateTenant
+      tags: [admin]
+      summary: Edit, suspend, or reactivate a tenant
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantUpdate"
+      responses:
+        "200":
+          description: Updated tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+    delete:
+      operationId: deleteTenant
+      tags: [admin]
+      summary: Soft-delete a tenant
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Deleted tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+  /admin/tenants/{id}/credit:
+    post:
+      operationId: allocateTenantCredit
+      tags: [admin]
+      summary: Allocate platform credit to a tenant
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditInput"
+      responses:
+        "200":
+          description: Updated tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+  /admin/tenants/{id}/ledger:
+    get:
+      operationId: getTenantLedger
+      tags: [admin]
+      summary: Get a tenant credit ledger
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Ledger rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LedgerEntry"
+  /admin/analytics:
+    get:
+      operationId: getAdminAnalytics
+      tags: [admin]
+      summary: Get platform analytics
+      responses:
+        "200":
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+  /admin/private-tenant/subscribers:
+    get:
+      operationId: listPrivateSubscribers
+      tags: [admin]
+      summary: List private tenant subscribers
+      responses:
+        "200":
+          description: Subscriber list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Subscriber"
+  /admin/private-tenant/topups:
+    get:
+      operationId: listPrivateTopups
+      tags: [admin]
+      summary: List private tenant top-up requests
+      responses:
+        "200":
+          description: Top-up list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Topup"
+  /admin/private-tenant/topups/{id}/decide:
+    post:
+      operationId: decidePrivateTopup
+      tags: [admin]
+      summary: Approve or deny a private top-up
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TopupDecision"
+      responses:
+        "200":
+          description: Updated top-up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Topup"
+  /admin/platform-staff:
+    get:
+      operationId: listPlatformStaff
+      tags: [admin]
+      summary: List platform staff
+      responses:
+        "200":
+          description: Staff list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Staff"
+    post:
+      operationId: createPlatformStaff
+      tags: [admin]
+      summary: Create platform staff
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffInput"
+      responses:
+        "201":
+          description: Staff created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Staff"
+  /admin/settings:
+    patch:
+      operationId: updateAdminSettings
+      tags: [admin]
+      summary: Update platform settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsUpdate"
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+  /tenant/overview:
+    get:
+      operationId: getTenantOverview
+      tags: [tenant]
+      summary: Get tenant dashboard overview
+      responses:
+        "200":
+          description: Tenant overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantOverview"
+  /tenant/settings:
+    get:
+      operationId: getTenantSettings
+      tags: [tenant]
+      summary: Get tenant kiosk settings
+      responses:
+        "200":
+          description: Tenant kiosk settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantSettings"
+    patch:
+      operationId: updateTenantSettings
+      tags: [tenant]
+      summary: Update tenant kiosk code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantSettingsInput"
+      responses:
+        "200":
+          description: Tenant kiosk settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantSettings"
+  /tenant/subscribers:
+    get:
+      operationId: listSubscribers
+      tags: [tenant]
+      summary: List tenant subscribers
+      responses:
+        "200":
+          description: Subscribers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Subscriber"
+    post:
+      operationId: createSubscriber
+      tags: [tenant]
+      summary: Create a subscriber
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriberInput"
+      responses:
+        "201":
+          description: Subscriber created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscriber"
+  /tenant/subscribers/{id}:
+    get:
+      operationId: getSubscriber
+      tags: [tenant]
+      summary: Get subscriber metadata
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Subscriber
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriberDetail"
+    patch:
+      operationId: updateSubscriber
+      tags: [tenant]
+      summary: Update subscriber
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriberUpdate"
+      responses:
+        "200":
+          description: Updated subscriber
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscriber"
+  /tenant/subscribers/{id}/credit:
+    post:
+      operationId: allocateSubscriberCredit
+      tags: [tenant]
+      summary: Allocate credit to a subscriber
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditInput"
+      responses:
+        "200":
+          description: Updated subscriber
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscriber"
+  /tenant/subscribers/{id}/usage:
+    get:
+      operationId: getSubscriberUsage
+      tags: [tenant]
+      summary: Get subscriber usage metadata
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Usage detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageDetail"
+  /tenant/subscribers/{id}/result:
+    get:
+      operationId: getTenantSubscriberResult
+      tags: [tenant]
+      summary: Get consent-gated result for tenant staff
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Scan result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanResult"
+  /tenant/topups:
+    get:
+      operationId: listTenantTopups
+      tags: [tenant]
+      summary: List tenant top-up requests
+      responses:
+        "200":
+          description: Top-up requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Topup"
+  /tenant/topups/{id}/decide:
+    post:
+      operationId: decideTenantTopup
+      tags: [tenant]
+      summary: Approve or deny a tenant top-up
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TopupDecision"
+      responses:
+        "200":
+          description: Updated top-up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Topup"
+  /tenant/subusers:
+    get:
+      operationId: listTenantSubusers
+      tags: [tenant]
+      summary: List tenant sub-users
+      responses:
+        "200":
+          description: Sub-users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Staff"
+    post:
+      operationId: createTenantSubuser
+      tags: [tenant]
+      summary: Create a tenant sub-user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffInput"
+      responses:
+        "201":
+          description: Sub-user created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Staff"
+  /tenant/subusers/{id}:
+    patch:
+      operationId: updateTenantSubuser
+      tags: [tenant]
+      summary: Update a tenant team member and permissions
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffUpdate"
+      responses:
+        "200":
+          description: Team member updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Staff"
+    delete:
+      operationId: deleteTenantSubuser
+      tags: [tenant]
+      summary: Delete a tenant team member
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: Team member deleted
+  /tenant/profile:
+    patch:
+      operationId: updateTenantProfile
+      tags: [tenant]
+      summary: Update tenant profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdate"
+      responses:
+        "200":
+          description: Updated tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+  /tenant/export/usage.csv:
+    get:
+      operationId: exportUsageCsv
+      tags: [tenant]
+      summary: Export usage report
+      responses:
+        "200":
+          description: CSV report
+          content:
+            text/csv:
+              schema:
+                type: string
+  /tenant/devices:
+    get:
+      operationId: listDevices
+      tags: [tenant]
+      summary: List registered devices
+      responses:
+        "200":
+          description: Devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Device"
+    post:
+      operationId: createDevice
+      tags: [tenant]
+      summary: Register a kiosk device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceInput"
+      responses:
+        "201":
+          description: Device created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+  /subscriber/me:
+    get:
+      operationId: getSubscriberMe
+      tags: [subscriber]
+      summary: Get subscriber portal profile
+      responses:
+        "200":
+          description: Subscriber profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriberPortal"
+    patch:
+      operationId: updateSubscriberMe
+      tags: [subscriber]
+      summary: Update subscriber profile and consent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriberUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriberPortal"
+  /subscriber/scans:
+    get:
+      operationId: listSubscriberScans
+      tags: [subscriber]
+      summary: List own scans
+      responses:
+        "200":
+          description: Scans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Scan"
+  /subscriber/scans/{id}:
+    get:
+      operationId: getSubscriberScan
+      tags: [subscriber]
+      summary: Get own scan and result
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Scan detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanDetail"
+  /subscriber/scans/start:
+    post:
+      operationId: startSubscriberScan
+      tags: [subscriber]
+      summary: Start a scan after server credit check
+      responses:
+        "201":
+          description: Pending scan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scan"
+  /subscriber/scans/{id}/complete:
+    post:
+      operationId: completeSubscriberScan
+      tags: [subscriber]
+      summary: Complete a mock scan and consume one credit
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScanResultInput"
+      responses:
+        "200":
+          description: Completed scan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanDetail"
+  /subscriber/scans/{id}/abort:
+    post:
+      operationId: abortSubscriberScan
+      tags: [subscriber]
+      summary: Abort a scan without consuming credit
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Aborted scan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scan"
+  /subscriber/topups:
+    post:
+      operationId: createSubscriberTopup
+      tags: [subscriber]
+      summary: Request more scan credit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TopupInput"
+      responses:
+        "201":
+          description: Top-up request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Topup"
+  /subscriber/self-reports:
+    get:
+      operationId: listSubscriberSelfReports
+      tags: [subscriber]
+      summary: List subscriber self-reported vital signs and symptoms
+      responses:
+        "200":
+          description: Self reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SelfReport"
+    post:
+      operationId: createSubscriberSelfReport
+      tags: [subscriber]
+      summary: Record subscriber vital signs, symptoms, or notes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelfReportInput"
+      responses:
+        "201":
+          description: Self report created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SelfReport"
+  /subscriber/notifications:
+    get:
+      operationId: listSubscriberNotifications
+      tags: [subscriber]
+      summary: List notifications
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+  /subscriber/register:
+    post:
+      operationId: registerSubscriber
+      tags: [subscriber]
+      summary: Self-register into the private tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriberRegisterInput"
+      responses:
+        "201":
+          description: Registered subscriber session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+  /kiosk/login:
+    post:
+      operationId: loginKiosk
+      tags: [kiosk]
+      summary: Unlock a registered kiosk device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KioskLoginInput"
+      responses:
+        "200":
+          description: Kiosk session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KioskSession"
+  /kiosk/exit:
+    post:
+      operationId: exitKiosk
+      tags: [kiosk]
+      summary: Verify kiosk code before exiting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KioskExitInput"
+      responses:
+        "200":
+          description: Exit authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+  /kiosk/lookup:
+    get:
+      operationId: lookupKioskSubscribers
+      tags: [kiosk]
+      summary: Search tenant subscribers for kiosk
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Subscriber lookup results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/KioskSubscriber"
+  /kiosk/guests:
+    post:
+      operationId: createKioskGuest
+      tags: [kiosk]
+      summary: Create a workspace guest for a kiosk scan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KioskGuestInput"
+      responses:
+        "201":
+          description: Guest created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KioskSubscriber"
+  /kiosk/scans/start:
+    post:
+      operationId: startKioskScan
+      tags: [kiosk]
+      summary: Start a kiosk scan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KioskScanInput"
+      responses:
+        "201":
+          description: Pending scan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scan"
+  /kiosk/scans/{id}/complete:
+    post:
+      operationId: completeKioskScan
+      tags: [kiosk]
+      summary: Complete a kiosk scan
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScanResultInput"
+      responses:
+        "200":
+          description: Completed scan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scan"
+  /kiosk/scans/{id}/abort:
+    post:
+      operationId: abortKioskScan
+      tags: [kiosk]
+      summary: Abort a kiosk scan
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Aborted scan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scan"
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Message:
+      type: object
+      properties:
+        message: { type: string }
+      required: [message]
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 1 }
+        mfaCode: { type: ["string", "null"] }
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string }
+        subRole: { type: ["string", "null"] }
+        tenantId: { type: ["string", "null"] }
+        tenantName: { type: ["string", "null"] }
+      required: [id, name, email, role, subRole, tenantId, tenantName]
+    Session:
+      type: object
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+        requiresMfa: { type: boolean }
+      required: [user, requiresMfa]
+    Tenant:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        type: { type: string }
+        address: { type: string }
+        status: { type: string }
+        creditBalance: { type: integer }
+        kioskEnabled: { type: boolean }
+        kioskCodeConfigured: { type: boolean }
+        subscriberCount: { type: integer }
+        creditsConsumed: { type: integer }
+        lastActive: { type: ["string", "null"] }
+        isPrivateTenant: { type: boolean }
+        createdAt: { type: string }
+      required: [id, name, type, address, status, creditBalance, kioskEnabled, kioskCodeConfigured, subscriberCount, creditsConsumed, lastActive, isPrivateTenant, createdAt]
+    TenantSettings:
+      type: object
+      properties:
+        kioskCodeConfigured: { type: boolean }
+        kioskEnabled: { type: boolean }
+      required: [kioskCodeConfigured, kioskEnabled]
+    TenantSettingsInput:
+      type: object
+      required: [kioskCode]
+      properties:
+        kioskCode: { type: string, pattern: '^\d{6}$' }
+    TenantInput:
+      type: object
+      required: [name, type, address, adminName, adminEmail, adminPhone, initialCredits]
+      properties:
+        name: { type: string }
+        type: { type: string }
+        address: { type: string }
+        adminName: { type: string }
+        adminEmail: { type: string, format: email }
+        adminPhone: { type: string }
+        initialCredits: { type: integer, minimum: 0 }
+        kioskEnabled: { type: boolean, default: false }
+    TenantUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        type: { type: string }
+        address: { type: string }
+        status: { type: string }
+        kioskEnabled: { type: boolean }
+    TenantDetail:
+      allOf:
+        - $ref: "#/components/schemas/Tenant"
+        - type: object
+          properties:
+            ledger:
+              type: array
+              items: { $ref: "#/components/schemas/LedgerEntry" }
+            devices:
+              type: array
+              items: { $ref: "#/components/schemas/Device" }
+    CreditInput:
+      type: object
+      required: [amount]
+      properties:
+        amount: { type: integer, minimum: 1 }
+        note: { type: ["string", "null"] }
+    LedgerEntry:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string }
+        amount: { type: integer }
+        note: { type: ["string", "null"] }
+        createdAt: { type: string }
+        actorName: { type: ["string", "null"] }
+      required: [id, type, amount, note, createdAt, actorName]
+    Subscriber:
+      type: object
+      properties:
+        id: { type: string }
+        tenantId: { type: string }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        dob: { type: string }
+        sex: { type: string }
+        heightCm: { type: ["integer", "null"] }
+        weightKg: { type: ["integer", "null"] }
+        status: { type: string }
+        consentTenantViewResults: { type: boolean }
+        whatsappNumber: { type: string }
+        nationalIdPassport: { type: ["string", "null"] }
+        isGuest: { type: boolean }
+        profileComplete: { type: boolean }
+        missingProfileFields:
+          type: array
+          items: { type: string }
+        creditBalance: { type: integer }
+        creditsUsed: { type: integer }
+        scansRun: { type: integer }
+        lastScanDate: { type: ["string", "null"] }
+        createdAt: { type: string }
+      required: [id, tenantId, name, email, phone, whatsappNumber, dob, sex, heightCm, weightKg, status, consentTenantViewResults, isGuest, profileComplete, missingProfileFields, creditBalance, creditsUsed, scansRun, lastScanDate, createdAt]
+    SubscriberInput:
+      type: object
+      required: [name, email, phone, dob, sex, initialCredits]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        whatsappNumber: { type: string }
+        nationalIdPassport: { type: ["string", "null"] }
+        dob: { type: string }
+        sex: { type: string }
+        heightCm: { type: ["integer", "null"] }
+        weightKg: { type: ["integer", "null"] }
+        initialCredits: { type: integer, minimum: 0 }
+    SubscriberRegisterInput:
+      allOf:
+        - $ref: "#/components/schemas/SubscriberInput"
+        - type: object
+          required: [password]
+          properties:
+            password: { type: string, minLength: 6 }
+    SubscriberUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        whatsappNumber: { type: string }
+        dob: { type: string }
+        sex: { type: string }
+        heightCm: { type: ["integer", "null"] }
+        weightKg: { type: ["integer", "null"] }
+        status: { type: string }
+        consentTenantViewResults: { type: boolean }
+        nationalIdPassport: { type: ["string", "null"] }
+    SubscriberDetail:
+      allOf:
+        - $ref: "#/components/schemas/Subscriber"
+        - type: object
+          properties:
+            scans:
+              type: array
+              items: { $ref: "#/components/schemas/Scan" }
+    SubscriberPortal:
+      allOf:
+        - $ref: "#/components/schemas/Subscriber"
+        - type: object
+          properties:
+            latestResult: { type: ["object", "null"] }
+            notifications:
+              type: array
+              items: { $ref: "#/components/schemas/Notification" }
+    Scan:
+      type: object
+      properties:
+        id: { type: string }
+        subscriberId: { type: string }
+        status: { type: string }
+        startedAt: { type: string }
+        completedAt: { type: ["string", "null"] }
+        deviceId: { type: ["string", "null"] }
+        deviceLabel: { type: ["string", "null"] }
+        deviceType: { type: ["string", "null"] }
+        deviceLocation: { type: ["string", "null"] }
+        operatorUserId: { type: ["string", "null"] }
+        creditUsed: { type: integer }
+        creditOwnerType: { type: string, enum: [tenant, subscriber] }
+        result:
+          anyOf:
+            - $ref: "#/components/schemas/ScanResult"
+            - type: "null"
+        resultRestricted: { type: boolean }
+      required: [id, subscriberId, status, startedAt, completedAt, deviceId, deviceLabel, deviceType, deviceLocation, operatorUserId, creditUsed, creditOwnerType, result]
+    ScanDetail:
+      allOf:
+        - $ref: "#/components/schemas/Scan"
+        - type: object
+          properties:
+            result: { $ref: "#/components/schemas/ScanResult" }
+    ScanResult:
+      type: object
+      properties:
+        id: { type: string }
+        scanId: { type: string }
+        hr: { type: number }
+        rr: { type: number }
+        sbp: { type: number }
+        dbp: { type: number }
+        spo2: { type: number }
+        stressIndex: { type: number }
+        wellnessScore: { type: number }
+        cardiovascularAge: { type: number }
+        cvdRiskPercentage: { type: number }
+        healthRadar: { type: object }
+        signalQuality: { type: object }
+        lowConfidenceFlags:
+          type: array
+          items: { type: string }
+        isMock: { type: boolean }
+        createdAt: { type: string }
+      required: [id, scanId, hr, rr, sbp, dbp, spo2, stressIndex, wellnessScore, cardiovascularAge, cvdRiskPercentage, healthRadar, signalQuality, lowConfidenceFlags, isMock, createdAt]
+    ScanResultInput:
+      type: object
+      required: [hr, rr, sbp, dbp, spo2, stressIndex, wellnessScore, cardiovascularAge, cvdRiskPercentage, healthRadar, signalQuality]
+      properties:
+        hr: { type: number }
+        rr: { type: number }
+        sbp: { type: number }
+        dbp: { type: number }
+        spo2: { type: number }
+        stressIndex: { type: number }
+        wellnessScore: { type: number }
+        cardiovascularAge: { type: number }
+        cvdRiskPercentage: { type: number }
+        healthRadar: { type: object }
+        signalQuality: { type: object }
+        lowConfidenceFlags:
+          type: array
+          items: { type: string }
+    Topup:
+      type: object
+      properties:
+        id: { type: string }
+        subscriberId: { type: string }
+        subscriberName: { type: string }
+        amountRequested: { type: integer }
+        status: { type: string }
+        createdAt: { type: string }
+        decidedAt: { type: ["string", "null"] }
+      required: [id, subscriberId, subscriberName, amountRequested, status, createdAt, decidedAt]
+    SelfReport:
+      type: object
+      required: [id, subscriberId, recordedAt, heartRate, systolicBp, diastolicBp, spo2, respiratoryRate, temperatureC, symptoms, notes, createdAt]
+      properties:
+        id: { type: string }
+        subscriberId: { type: string }
+        recordedAt: { type: string }
+        heartRate: { type: ["number", "null"] }
+        systolicBp: { type: ["number", "null"] }
+        diastolicBp: { type: ["number", "null"] }
+        spo2: { type: ["number", "null"] }
+        respiratoryRate: { type: ["number", "null"] }
+        temperatureC: { type: ["number", "null"] }
+        symptoms:
+          type: array
+          items: { type: string }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string }
+    SelfReportInput:
+      type: object
+      properties:
+        recordedAt: { type: string }
+        heartRate: { type: ["number", "null"] }
+        systolicBp: { type: ["number", "null"] }
+        diastolicBp: { type: ["number", "null"] }
+        spo2: { type: ["number", "null"] }
+        respiratoryRate: { type: ["number", "null"] }
+        temperatureC: { type: ["number", "null"] }
+        symptoms:
+          type: array
+          items: { type: string }
+        notes: { type: ["string", "null"], maxLength: 1000 }
+    TopupInput:
+      type: object
+      required: [amountRequested]
+      properties:
+        amountRequested: { type: integer, minimum: 1 }
+    TopupDecision:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string }
+    Notification:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string }
+        title: { type: string }
+        message: { type: string }
+        read: { type: boolean }
+        createdAt: { type: string }
+      required: [id, type, title, message, read, createdAt]
+    Device:
+      type: object
+      properties:
+        id: { type: string }
+        label: { type: string }
+        location: { type: string }
+        type: { type: string }
+        lastActive: { type: string }
+        scanCount: { type: integer }
+      required: [id, label, location, type, lastActive]
+    DeviceInput:
+      type: object
+      required: [label, location]
+      properties:
+        label: { type: string }
+        location: { type: string }
+    KioskSubscriber:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        creditBalance: { type: integer }
+        isGuest: { type: boolean }
+        profileComplete: { type: boolean }
+        missingProfileFields:
+          type: array
+          items: { type: string }
+      required: [id, name, email, phone, creditBalance, isGuest, profileComplete, missingProfileFields]
+    KioskGuestInput:
+      type: object
+      required: [name, phone, dob, sex, heightCm, weightKg]
+      properties:
+        name: { type: string, minLength: 1 }
+        email: { type: string }
+        phone: { type: string, minLength: 1 }
+        dob: { type: string, minLength: 1 }
+        sex: { type: string, minLength: 1 }
+        heightCm: { type: integer, minimum: 50, maximum: 250 }
+        weightKg: { type: integer, minimum: 20, maximum: 350 }
+    KioskScanInput:
+      type: object
+      required: [subscriberId]
+      properties:
+        subscriberId: { type: string }
+        deviceId: { type: string }
+    KioskLoginInput:
+      type: object
+      required: [email, password, kioskCode, deviceId]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+        kioskCode: { type: string }
+        deviceId: { type: string }
+    KioskExitInput:
+      type: object
+      required: [kioskCode]
+      properties:
+        kioskCode: { type: string }
+    KioskSession:
+      allOf:
+        - $ref: "#/components/schemas/Session"
+        - type: object
+          required: [device]
+          properties:
+            device: { $ref: "#/components/schemas/Device" }
+    AdminOverview:
+      type: object
+      properties:
+        totalTenants: { type: integer }
+        totalSubscribers: { type: integer }
+        totalScans: { type: integer }
+        creditsIssued: { type: integer }
+        creditsConsumed: { type: integer }
+        activeTenants: { type: integer }
+        trend:
+          type: array
+          items:
+            type: object
+            properties:
+              label: { type: string }
+              scans: { type: integer }
+              credits: { type: integer }
+            required: [label, scans, credits]
+      required: [totalTenants, totalSubscribers, totalScans, creditsIssued, creditsConsumed, activeTenants, trend]
+    Analytics:
+      allOf:
+        - $ref: "#/components/schemas/AdminOverview"
+        - type: object
+          properties:
+            topTenants:
+              type: array
+              items:
+                type: object
+                properties:
+                  name: { type: string }
+                  scans: { type: integer }
+                  credits: { type: integer }
+                required: [name, scans, credits]
+    TenantOverview:
+      type: object
+      properties:
+        tenant: { $ref: "#/components/schemas/Tenant" }
+        subscribers:
+          type: array
+          items: { $ref: "#/components/schemas/Subscriber" }
+        pendingTopups: { type: integer }
+        devices:
+          type: array
+          items: { $ref: "#/components/schemas/Device" }
+      required: [tenant, subscribers, pendingTopups, devices]
+    UsageDetail:
+      type: object
+      properties:
+        subscriber: { $ref: "#/components/schemas/Subscriber" }
+        scans:
+          type: array
+          items: { $ref: "#/components/schemas/Scan" }
+        selfReports:
+          type: array
+          items: { $ref: "#/components/schemas/SelfReport" }
+        latestResult: { type: ["object", "null"] }
+      required: [subscriber, scans, selfReports, latestResult]
+    Staff:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string }
+        subRole: { type: ["string", "null"] }
+        status: { type: string }
+        permissions:
+          $ref: "#/components/schemas/PermissionSet"
+      required: [id, name, email, role, subRole, status, permissions]
+    StaffInput:
+      type: object
+      required: [name, email, subRole]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        subRole: { type: string }
+        permissions:
+          $ref: "#/components/schemas/PermissionSet"
+    StaffUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        subRole: { type: string }
+        status: { type: string, enum: [active, suspended] }
+        permissions:
+          $ref: "#/components/schemas/PermissionSet"
+    PermissionActions:
+      type: array
+      uniqueItems: true
+      items:
+        type: string
+        enum: [read, write, update, delete]
+    PermissionSet:
+      type: object
+      required: [workspace, team, subscribers, scans, credits, devices, self_reports, settings]
+      properties:
+        workspace: { $ref: "#/components/schemas/PermissionActions" }
+        team: { $ref: "#/components/schemas/PermissionActions" }
+        subscribers: { $ref: "#/components/schemas/PermissionActions" }
+        scans: { $ref: "#/components/schemas/PermissionActions" }
+        credits: { $ref: "#/components/schemas/PermissionActions" }
+        devices: { $ref: "#/components/schemas/PermissionActions" }
+        self_reports: { $ref: "#/components/schemas/PermissionActions" }
+        settings: { $ref: "#/components/schemas/PermissionActions" }
+    ProfileUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        address: { type: string }
+    Settings:
+      type: object
+      properties:
+        defaultCreditGrant: { type: integer }
+        lowCreditThreshold: { type: integer }
+      required: [defaultCreditGrant, lowCreditThreshold]
+    SettingsUpdate:
+      type: object
+      properties:
+        defaultCreditGrant: { type: integer, minimum: 0 }
+        lowCreditThreshold: { type: integer, minimum: 0 }
+
