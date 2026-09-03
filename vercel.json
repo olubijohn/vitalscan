@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "pnpm --filter @workspace/vitalscan run build",
+  "outputDirectory": "artifacts/vitalscan/dist/public",
+  "rewrites": [
+    {
+      "source": "/((?!assets/|fhvitals/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
