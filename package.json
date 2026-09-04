@@ -2,6 +2,7 @@
   "name": "workspace",
   "version": "0.0.0",
   "license": "MIT",
+  "packageManager": "pnpm@9.15.4",
   "scripts": {
     "dev:server": "pnpm --filter @workspace/api-server run dev",
     "dev:client": "pnpm --filter @workspace/vitalscan run dev",
